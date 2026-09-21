@@ -266,7 +266,7 @@ class Parser(object):
             # We're creating a projection.
             self._advance()
             right = self._parse_projection_rhs(
-                self.BINDING_POWER['dot'])
+                self.BINDING_POWER['star'])
             return ast.value_projection(left, right)
 
     def _token_led_pipe(self, left):
