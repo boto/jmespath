@@ -456,5 +456,88 @@
             "result": [0, 0]
          }
      ]
+},
+{
+    "given": {
+        "foo": {
+            "": {"bar": {"baz": 123}},
+            "regular": {"bar": {"baz": 123}},
+            "missing": {},
+            "nullvalue": {"bar": null}
+        }
+    },
+    "cases": [
+        {
+            "expression": "foo.*.bar.*",
+            "result": [[123], [123]]
+        },
+        {
+            "expression": "foo.*.bar.* | [0]",
+            "result": [123]
+        },
+        {
+            "expression": "foo.*.bar.*[]",
+            "result": [123, 123]
+        },
+        {
+            "expression": "foo.*.bar | *",
+            "result": null
+        },
+        {
+            "expression": "foo.*.bar.* || `false`",
+            "result": [[123], [123]]
+        }
+    ]
+},
+{
+    "given": {
+        "foo": {
+            "first": {"bar": {"second": {"baz": {"value": 123}}}}
+        }
+    },
+    "cases": [
+        {
+            "expression": "foo.*.bar.second.baz.value",
+            "result": [123]
+        },
+        {
+            "expression": "foo.*.bar.*.baz.*",
+            "result": [[[123]]]
+        }
+    ]
+},
+{
+    "given": {
+        "foo": {
+            "first": {
+                "bar": [{"baz": {"value": 123}}, {"baz": {"value": 456}}]
+            }
+        }
+    },
+    "cases": [
+        {
+            "expression": "foo.*.bar[*].baz.*",
+            "result": [[[123], [456]]]
+        },
+        {
+            "expression": "foo.*.bar[*].baz.* | [0]",
+            "result": [[123], [456]]
+        },
+        {
+            "expression": "foo.*.bar[?baz].baz.*",
+            "result": [[[123], [456]]]
+        }
+    ]
+},
+{
+    "given": {
+        "foo": [{"bar": {"first": {"baz": {"value": 123}}}}]
+    },
+    "cases": [
+        {
+            "expression": "foo[*].bar.*.baz.*",
+            "result": [[[123]]]
+        }
+    ]
 }
 ]
