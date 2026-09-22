@@ -1,7 +1,7 @@
 Next Release (TBD)
 ==================
 
-* No changes yet.
+* Fix slice projections following an array index.
 
 
 1.1.0
