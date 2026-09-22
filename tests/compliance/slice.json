@@ -184,4 +184,69 @@
       "result": []
     }
   ]
+}, {
+  "given": {
+    "foo": [[{"a": 1}, {"a": 2}, {}]],
+    "bar": [[[1, 2], [3, 4], [5, 6]]],
+    "baz": [{"a": 1}],
+    "nulls": [[1, null, 2]]
+  },
+  "cases": [
+    {
+      "expression": "foo[0][:2].a",
+      "result": [1, 2]
+    },
+    {
+      "expression": "foo[-1][::-1].a",
+      "result": [2, 1]
+    },
+    {
+      "expression": "foo[0][:0].a",
+      "result": []
+    },
+    {
+      "expression": "foo[0][:].b",
+      "result": []
+    },
+    {
+      "expression": "foo[0][:2]",
+      "result": [{"a": 1}, {"a": 2}]
+    },
+    {
+      "expression": "foo[0][:2] | [0].a",
+      "result": 1
+    },
+    {
+      "expression": "bar[0][:2][0]",
+      "result": [1, 3]
+    },
+    {
+      "expression": "bar[0][0][:1]",
+      "result": [1]
+    },
+    {
+      "expression": "bar[0][0][:1].a",
+      "result": []
+    },
+    {
+      "expression": "baz[0][:].a",
+      "result": null
+    },
+    {
+      "expression": "foo[4][:].a",
+      "result": null
+    },
+    {
+      "expression": "nulls[0][:]",
+      "result": [1, 2]
+    }
+  ]
+}, {
+  "given": [[{"a": 1}, {"a": 2}]],
+  "cases": [
+    {
+      "expression": "[0][:2].a",
+      "result": [1, 2]
+    }
+  ]
 }]

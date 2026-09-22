@@ -339,7 +339,8 @@ class Parser(object):
         token = self._lookahead_token(0)
         if token['type'] in ['number', 'colon']:
             right = self._parse_index_expression()
-            if left['type'] == 'index_expression':
+            if (left['type'] == 'index_expression' and
+                    right['type'] != 'slice'):
                 # Optimization: if the left node is an index expr,
                 # we can avoid creating another node and instead just add
                 # the right node as a child of the left.
