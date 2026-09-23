@@ -62,3 +62,44 @@ class TestPythonSpecificCases(unittest.TestCase):
         result = decimal.Decimal('3')
         self.assertEqual(jmespath.search('[?a >= `1`].a', [{'a': result}]),
                          [result])
+
+
+class TestLiteralFreshness(unittest.TestCase):
+    """Mutable JSON literals must be re-created on each visit (regression for #318).
+
+    The parser caches the parsed AST per expression, so the literal node
+    itself is shared across calls. Without an independent copy, two
+    searches of the same literal expression would return the same list/dict
+    object, and any in-place mutation by the caller would leak into every
+    subsequent search.
+    """
+
+    def test_list_literal_is_independent_per_search(self):
+        first = jmespath.search('`[]`', {})
+        first.extend([1, 2, 3])
+        second = jmespath.search('`[]`', {})
+        second.extend([9, 8, 7])
+        self.assertEqual(first, [1, 2, 3])
+        self.assertEqual(second, [9, 8, 7])
+
+    def test_object_literal_is_independent_per_search(self):
+        first = jmespath.search('`{}`', {})
+        first['x'] = 1
+        second = jmespath.search('`{}`', {})
+        second['y'] = 2
+        self.assertEqual(first, {'x': 1})
+        self.assertEqual(second, {'y': 2})
+
+    def test_nested_list_literal_is_independent(self):
+        first = jmespath.search('`[[]]`', {})
+        first[0].append('a')
+        second = jmespath.search('`[[]]`', {})
+        second[0].append('b')
+        self.assertEqual(first, [['a']])
+        self.assertEqual(second, [['b']])
+
+    def test_string_literal_remains_a_string(self):
+        # immutable literal should not be wrapped or duplicated
+        result = jmespath.search('`"hello"`', {})
+        self.assertEqual(result, 'hello')
+        self.assertIsInstance(result, str)

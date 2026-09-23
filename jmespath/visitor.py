@@ -1,3 +1,4 @@
+import copy
 import operator
 
 from jmespath import functions
@@ -225,7 +226,13 @@ class TreeInterpreter(Visitor):
         return self.visit(node['children'][0], value)
 
     def visit_literal(self, node, value):
-        return node['value']
+        # ``Parser`` caches the parsed AST (and therefore the literal's
+        # already-decoded value) per expression. Without an independent copy,
+        # two searches of the same expression would share a single list/dict
+        # object, so mutating one result (e.g. ``.append(...)``) would leak
+        # into every other call. Re-decode JSON literals on every visit so
+        # callers get a fresh, independent value.
+        return copy.deepcopy(node['value'])
 
     def visit_multi_select_dict(self, node, value):
         if value is None:
