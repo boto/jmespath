@@ -390,5 +390,47 @@ class TestRenderGraphvizFile(unittest.TestCase):
             'field3 [label="field(bar)"]\n}')
 
 
+class TestParserDepthLimit(unittest.TestCase):
+    # _expression() recurses once per nesting level with no bound, so a
+    # deeply nested expression could exhaust the interpreter's call stack
+    # and raise a bare RecursionError - not jmespath.exceptions.ParseError
+    # or any other member of the library's own exception hierarchy - which
+    # callers following the documented error-handling pattern (catching
+    # only JMESPathError around compile()/search()) would not catch.
+
+    def test_deeply_nested_expression_raises_parse_error(self):
+        p = parser.Parser()
+        expression = '[' * 50000 + ']' * 50000
+        with self.assertRaises(exceptions.ParseError):
+            p.parse(expression)
+
+    def test_deeply_nested_expression_does_not_raise_recursion_error(self):
+        p = parser.Parser()
+        expression = '[' * 50000 + ']' * 50000
+        try:
+            p.parse(expression)
+        except RecursionError:
+            self.fail("RecursionError leaked past the depth limit check")
+        except exceptions.ParseError:
+            pass
+
+    def test_reasonably_nested_expression_still_parses(self):
+        p = parser.Parser()
+        depth = parser.Parser._MAX_EXPRESSION_DEPTH - 10
+        expression = '[' * depth + ']' * depth
+        # Should not raise.
+        p.parse(expression)
+
+    def test_depth_resets_between_parses_on_same_parser_instance(self):
+        p = parser.Parser()
+        too_deep = '[' * 50000 + ']' * 50000
+        with self.assertRaises(exceptions.ParseError):
+            p.parse(too_deep)
+        # A later, unrelated, shallow expression on the same Parser
+        # instance must not be affected by the earlier failed parse.
+        result = p.parse('foo.bar')
+        self.assertIsNotNone(result)
+
+
 if __name__ == '__main__':
     unittest.main()

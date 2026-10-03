@@ -72,12 +72,21 @@ class Parser(object):
     # _CACHE dict.
     _CACHE = {}
     _MAX_SIZE = 512
+    # _expression() recurses once per nesting level of the parsed
+    # expression with no other bound, so a deeply nested expression
+    # string can exhaust the interpreter's call stack. This caps the
+    # nesting depth well above anything a hand-written or generated
+    # expression would realistically use, and turns what would
+    # otherwise be a bare, uncatchable-by-callers-following-our-own-
+    # docs RecursionError into a regular ParseError.
+    _MAX_EXPRESSION_DEPTH = 100
 
     def __init__(self, lookahead=2):
         self.tokenizer = None
         self._tokens = [None] * lookahead
         self._buffer_size = lookahead
         self._index = 0
+        self._depth = 0
 
     def parse(self, expression):
         try:
@@ -119,6 +128,7 @@ class Parser(object):
         self.tokenizer = lexer.Lexer().tokenize(expression)
         self._tokens = list(self.tokenizer)
         self._index = 0
+        self._depth = 0
         parsed = self._expression(binding_power=0)
         if not self._current_token() == 'eof':
             t = self._lookahead_token(0)
@@ -127,23 +137,33 @@ class Parser(object):
         return ParsedResult(expression, parsed)
 
     def _expression(self, binding_power=0):
-        left_token = self._lookahead_token(0)
-        self._advance()
-        nud_function = getattr(
-            self, '_token_nud_%s' % left_token['type'],
-            self._error_nud_token)
-        left = nud_function(left_token)
-        current_token = self._current_token()
-        while binding_power < self.BINDING_POWER[current_token]:
-            led = getattr(self, '_token_led_%s' % current_token, None)
-            if led is None:
-                error_token = self._lookahead_token(0)
-                self._error_led_token(error_token)
-            else:
-                self._advance()
-                left = led(left)
-                current_token = self._current_token()
-        return left
+        self._depth += 1
+        if self._depth > self._MAX_EXPRESSION_DEPTH:
+            t = self._lookahead_token(0)
+            raise exceptions.ParseError(
+                t['start'], t['value'], t['type'],
+                "Expression nested too deeply (max %d levels)"
+                % self._MAX_EXPRESSION_DEPTH)
+        try:
+            left_token = self._lookahead_token(0)
+            self._advance()
+            nud_function = getattr(
+                self, '_token_nud_%s' % left_token['type'],
+                self._error_nud_token)
+            left = nud_function(left_token)
+            current_token = self._current_token()
+            while binding_power < self.BINDING_POWER[current_token]:
+                led = getattr(self, '_token_led_%s' % current_token, None)
+                if led is None:
+                    error_token = self._lookahead_token(0)
+                    self._error_led_token(error_token)
+                else:
+                    self._advance()
+                    left = led(left)
+                    current_token = self._current_token()
+            return left
+        finally:
+            self._depth -= 1
 
     def _token_nud_literal(self, token):
         return ast.literal(token['value'])
