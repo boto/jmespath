@@ -1,7 +1,8 @@
 Next Release (TBD)
 ==================
 
-* No changes yet.
+* Raise ``JMESPathTypeError`` for mixed number and string comparison keys in
+  ``min_by`` and ``max_by``.
 
 
 1.1.0

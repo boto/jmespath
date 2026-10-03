@@ -694,6 +694,10 @@
       "error": "invalid-type"
     },
     {
+      "expression": "max_by(people, &name)",
+      "error": "invalid-type"
+    },
+    {
       "expression": "max_by(people, &extra)",
       "error": "invalid-type"
     },
@@ -715,6 +719,10 @@
     },
     {
       "expression": "min_by(people, &bool)",
+      "error": "invalid-type"
+    },
+    {
+      "expression": "min_by(people, &name)",
       "error": "invalid-type"
     },
     {

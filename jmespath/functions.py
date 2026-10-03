@@ -348,6 +348,7 @@ class Functions(metaclass=FunctionRegistry):
 
     def _create_key_func(self, expref, allowed_types, function_name):
         def keyfunc(x):
+            nonlocal allowed_types
             result = expref.visit(expref.expression, x)
             actual_typename = type(result).__name__
             jmespath_type = self._convert_to_jmespath_type(actual_typename)
@@ -355,6 +356,8 @@ class Functions(metaclass=FunctionRegistry):
             if jmespath_type not in allowed_types:
                 raise exceptions.JMESPathTypeError(
                     function_name, result, jmespath_type, allowed_types)
+            # All comparison keys must have the same JMESPath type.
+            allowed_types = [jmespath_type]
             return result
         return keyfunc
 
