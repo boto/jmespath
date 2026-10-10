@@ -55,3 +55,22 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(
             str(exception),
             'Expected at least 1 argument for function not_null(), received 0')
+
+    def test_contains_array_distinguishes_booleans_from_numbers(self):
+        # 2026-10-11: Array membership must use JMESPath scalar equality.
+        for value, search in [(True, 1), (False, 0), (1, True), (0, False),
+                              (True, 1.0), (False, 0.0)]:
+            with self.subTest(value=value, search=search):
+                data = {'values': [value], 'search': search}
+                self.assertFalse(jmespath.search('contains(values, search)', data))
+
+    def test_contains_array_preserves_valid_matches(self):
+        # 2026-10-11: Preserve numeric equivalence and matching JSON types.
+        for value, search in [(1, 1.0), (0, 0.0), (True, True),
+                              (False, False), (None, None), ('one', 'one')]:
+            with self.subTest(value=value, search=search):
+                data = {'values': [value], 'search': search}
+                self.assertTrue(jmespath.search('contains(values, search)', data))
+        self.assertFalse(jmespath.search('contains(@, `true`)', []))
+        self.assertTrue(jmespath.search('contains(@, `true`)', [1, True]))
+        self.assertTrue(jmespath.search("contains(@, 'bar')", 'foobar'))

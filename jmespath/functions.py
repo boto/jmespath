@@ -212,6 +212,10 @@ class Functions(metaclass=FunctionRegistry):
 
     @signature({'types': ['array', 'string']}, {'types': []})
     def _func_contains(self, subject, search):
+        if isinstance(subject, list):
+            # 2026-10-11: Import after initialization to share comparator equality.
+            from jmespath.visitor import _equals
+            return any(_equals(element, search) for element in subject)
         return search in subject
 
     @signature({'types': ['string', 'array', 'object']})
