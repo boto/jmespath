@@ -206,7 +206,8 @@ class Functions(metaclass=FunctionRegistry):
                 return int(arg)
             except ValueError:
                 try:
-                    return float(arg)
+                    number = float(arg)
+                    return number if math.isfinite(number) else None
                 except ValueError:
                     return None
 

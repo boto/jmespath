@@ -9,6 +9,18 @@ from jmespath import exceptions
 
 class TestFunctions(unittest.TestCase):
 
+    def test_to_number_rejects_nonfinite_strings(self):
+        for value in ('NaN', 'nan', 'Infinity', '-Infinity', 'inf', '-inf',
+                      '1e999', '-1e999'):
+            with self.subTest(value=value):
+                result = jmespath.search('to_number(@)', value)
+                self.assertIsNone(result)
+                self.assertEqual(json.dumps(result, allow_nan=False), 'null')
+
+    def test_to_number_projection_filters_nonfinite_results(self):
+        values = ['1e2', 'NaN', '-Infinity', '1e999', '-0.5', 'not a number']
+        self.assertEqual(jmespath.search('[].to_number(@)', values), [100.0, -0.5])
+
     def test_can_max_datetimes(self):
         # This is python specific behavior, but JMESPath does not specify what
         # you should do with language specific types.  We're going to add the
