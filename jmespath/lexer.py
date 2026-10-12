@@ -174,7 +174,7 @@ class Lexer(object):
                                  message="Bad token %s" % lexeme)
         token_len = self._position - start
         return {'type': 'literal', 'value': parsed_json,
-                'start': start, 'end': token_len}
+                'start': start, 'end': start + token_len}
 
     def _consume_quoted_identifier(self):
         start = self._position
@@ -182,7 +182,7 @@ class Lexer(object):
         try:
             token_len = self._position - start
             return {'type': 'quoted_identifier', 'value': loads(lexeme),
-                    'start': start, 'end': token_len}
+                    'start': start, 'end': start + token_len}
         except ValueError as e:
             error_message = str(e).split(':')[0]
             raise LexerError(lexer_position=start,
@@ -194,7 +194,7 @@ class Lexer(object):
         lexeme = self._consume_until("'").replace("\\'", "'")
         token_len = self._position - start
         return {'type': 'literal', 'value': lexeme,
-                'start': start, 'end': token_len}
+                'start': start, 'end': start + token_len}
 
     def _match_or_else(self, expected, match_type, else_type):
         start = self._position

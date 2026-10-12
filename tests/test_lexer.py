@@ -132,6 +132,27 @@ class TestRegexLexer(unittest.TestCase):
              ]
         )
 
+    def test_position_quoted_identifier(self):
+        tokens = list(self.lexer.tokenize('foo."q"'))
+        quoted = [t for t in tokens if t['type'] == 'quoted_identifier'][0]
+        self.assertEqual(quoted['start'], 4)
+        self.assertEqual(quoted['end'], 6)
+        self.assertGreaterEqual(quoted['end'], quoted['start'])
+
+    def test_position_literal_not_at_start(self):
+        tokens = list(self.lexer.tokenize('foo.`123`'))
+        literal = [t for t in tokens if t['type'] == 'literal'][0]
+        self.assertEqual(literal['start'], 4)
+        self.assertEqual(literal['end'], 8)
+        self.assertGreaterEqual(literal['end'], literal['start'])
+
+    def test_position_raw_string_not_at_start(self):
+        tokens = list(self.lexer.tokenize("foo.'bar'"))
+        literal = [t for t in tokens if t['type'] == 'literal'][0]
+        self.assertEqual(literal['start'], 4)
+        self.assertEqual(literal['end'], 8)
+        self.assertGreaterEqual(literal['end'], literal['start'])
+
     def test_adds_quotes_when_invalid_json(self):
         tokens = list(self.lexer.tokenize('`{{}`'))
         self.assertEqual(

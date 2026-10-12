@@ -1,7 +1,9 @@
 Next Release (TBD)
 ==================
 
-* No changes yet.
+* Fix ``end`` position offset for quoted identifier, literal, and raw string
+  literal tokens
+  (`issue #380 <https://github.com/jmespath/jmespath.py/issues/380>`__)
 
 
 1.1.0
