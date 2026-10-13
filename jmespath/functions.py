@@ -235,10 +235,14 @@ class Functions(metaclass=FunctionRegistry):
 
     @signature({"types": ['number']})
     def _func_ceil(self, arg):
+        if isinstance(arg, float) and not math.isfinite(arg):
+            return arg
         return math.ceil(arg)
 
     @signature({"types": ['number']})
     def _func_floor(self, arg):
+        if isinstance(arg, float) and not math.isfinite(arg):
+            return arg
         return math.floor(arg)
 
     @signature({"types": ['string']}, {"types": ['array-string']})

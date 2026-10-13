@@ -2,6 +2,7 @@
 from tests import unittest
 from datetime import datetime, timedelta
 import json
+import math
 
 import jmespath
 from jmespath import exceptions
@@ -17,6 +18,39 @@ class TestFunctions(unittest.TestCase):
         data = [datetime.now(), datetime.now() + timedelta(seconds=1)]
         result = jmespath.search('max([*].to_string(@))', data)
         self.assertEqual(json.loads(result), str(data[-1]))
+
+    def test_floor_and_ceil_preserve_nonfinite_numbers(self):
+        for function in ('floor', 'ceil'):
+            for literal in ('Infinity', '-Infinity', 'NaN'):
+                with self.subTest(function=function, literal=literal):
+                    value = json.loads(literal)
+                    result = jmespath.search('%s(@)' % function, value)
+                    if math.isnan(value):
+                        self.assertTrue(math.isnan(result))
+                    else:
+                        self.assertEqual(result, value)
+
+    def test_floor_and_ceil_finite_numbers(self):
+        cases = [
+            (1.5, 1, 2),
+            (-1.5, -2, -1),
+            (0.0, 0, 0),
+            (2, 2, 2),
+            (10 ** 400, 10 ** 400, 10 ** 400),
+        ]
+        for value, floor, ceil in cases:
+            for function, expected in (('floor', floor), ('ceil', ceil)):
+                with self.subTest(function=function, value=value):
+                    result = jmespath.search('%s(@)' % function, value)
+                    self.assertEqual(result, expected)
+                    self.assertIsInstance(result, int)
+
+    def test_floor_and_ceil_reject_non_numbers(self):
+        for function in ('floor', 'ceil'):
+            for value in (True, None, 'Infinity', [], {}):
+                with self.subTest(function=function, value=value):
+                    with self.assertRaises(exceptions.JMESPathTypeError):
+                        jmespath.search('%s(@)' % function, value)
 
     def test_type_error_messages(self):
         with self.assertRaises(exceptions.JMESPathTypeError) as e:
