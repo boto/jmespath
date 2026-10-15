@@ -292,11 +292,12 @@ class Parser(object):
                 "Invalid function name '%s'" % prev_t['value'])
         name = left['value']
         args = []
-        while not self._current_token() == 'rparen':
-            expression = self._expression()
-            if self._current_token() == 'comma':
+        if self._current_token() != 'rparen':
+            while True:
+                args.append(self._expression())
+                if self._current_token() == 'rparen':
+                    break
                 self._match('comma')
-            args.append(expression)
         self._match('rparen')
         function_node = ast.function_expression(name, args)
         return function_node

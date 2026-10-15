@@ -97,6 +97,38 @@ class TestParser(unittest.TestCase):
         result = parsed.search({'foo': {'bar': {'baz': 'CORRECT'}, 'qux': 'qux'}})
         self.assertEqual(result, {"bar": "CORRECT", "qux": "qux"})
 
+    def test_function_arguments_require_comma_separators(self):
+        expressions = [
+            'contains(@ @)',
+            "join('' 'abc')",
+            'sort_by(@ &foo)',
+            'not_null(foo bar)',
+            'not_null(foo, bar baz)',
+            'not_null(length(foo) length(bar))',
+        ]
+        for expression in expressions:
+            with self.subTest(expression=expression):
+                with self.assertRaises(exceptions.ParseError):
+                    self.parser.parse(expression)
+
+    def test_function_arguments_reject_trailing_comma(self):
+        for expression in ['length(@,)', 'not_null(foo, bar,)']:
+            with self.subTest(expression=expression):
+                with self.assertRaises(exceptions.ParseError):
+                    self.parser.parse(expression)
+
+    def test_function_arguments_with_comma_separators(self):
+        self.assert_parsed_ast('f()', ast.function_expression('f', []))
+        self.assert_parsed_ast(
+            'f(foo, bar, baz)',
+            ast.function_expression('f', [ast.field('foo'), ast.field('bar'),
+                                          ast.field('baz')]))
+        parsed = self.parser.parse('not_null(length(foo), length(bar))')
+        self.assertEqual(parsed.search({'foo': [1, 2], 'bar': []}), 2)
+        parsed = self.parser.parse('sort_by(@, &foo)')
+        self.assertEqual(parsed.search([{'foo': 2}, {'foo': 1}]),
+                         [{'foo': 1}, {'foo': 2}])
+
     def test_function_call_with_and_statement(self):
         self.assert_parsed_ast(
             'f(@ && @)',
