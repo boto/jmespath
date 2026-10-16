@@ -191,9 +191,19 @@ class Lexer(object):
 
     def _consume_raw_string_literal(self):
         start = self._position
-        lexeme = self._consume_until("'").replace("\\'", "'")
+        lexeme = self._consume_until("'")
+        raw_string = []
+        i = 0
+        while i < len(lexeme):
+            char = lexeme[i]
+            if (char == '\\' and i + 1 < len(lexeme) and
+                    lexeme[i + 1] in ("\\", "'")):
+                i += 1
+                char = lexeme[i]
+            raw_string.append(char)
+            i += 1
         token_len = self._position - start
-        return {'type': 'literal', 'value': lexeme,
+        return {'type': 'literal', 'value': ''.join(raw_string),
                 'start': start, 'end': token_len}
 
     def _match_or_else(self, expected, match_type, else_type):

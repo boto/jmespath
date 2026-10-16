@@ -1,7 +1,7 @@
 Next Release (TBD)
 ==================
 
-* No changes yet.
+* Decode escaped backslashes in raw string literals according to the language specification.
 
 
 1.1.0
