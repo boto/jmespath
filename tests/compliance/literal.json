@@ -191,9 +191,9 @@
           "result": "\\z"
         },
         {
-          "comment": "Backslash not followed by single quote is treated as any other character",
+          "comment": "Backslash escapes a backslash in a raw string",
           "expression": "'\\\\'",
-          "result": "\\\\"
+          "result": "\\"
         }
       ]
     }
