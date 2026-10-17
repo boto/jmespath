@@ -168,7 +168,12 @@ class Functions(metaclass=FunctionRegistry):
     @signature({'types': ['array-number']})
     def _func_avg(self, arg):
         if arg:
-            return sum(arg) / len(arg)
+            total = sum(arg)
+            if isinstance(total, float) and math.isinf(total):
+                # The sum can overflow even when the average is finite.
+                from statistics import mean
+                return mean(arg)
+            return total / len(arg)
         else:
             return None
 

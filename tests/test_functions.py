@@ -2,12 +2,48 @@
 from tests import unittest
 from datetime import datetime, timedelta
 import json
+import sys
 
 import jmespath
 from jmespath import exceptions
 
 
 class TestFunctions(unittest.TestCase):
+
+    def test_avg_avoids_intermediate_float_overflow(self):
+        maximum = sys.float_info.max
+        cases = [
+            ([1e308, 1e308], 1e308),
+            ([-1e308, -1e308], -1e308),
+            ([1e308, 1e308, -1e308], 1e308 / 3),
+            ([1e308, -1e308, 1e308], 1e308 / 3),
+            ([1e308, 1e308, -1e308, -1e308], 0.0),
+            ([maximum, maximum, maximum], maximum),
+            ([10 ** 308, 1e308], 1e308),
+        ]
+        compiled = jmespath.compile('avg(@)')
+        for values, expected in cases:
+            with self.subTest(values=values):
+                self.assertEqual(jmespath.search('avg(@)', values), expected)
+                result = compiled.search(values)
+                self.assertEqual(result, expected)
+                json.dumps(result, allow_nan=False)
+
+    def test_avg_preserves_finite_and_empty_results(self):
+        cases = [
+            ([], None),
+            ([1, 2], 1.5),
+            ([1, 2, 3], 2.0),
+            ([1, 2.5], 1.75),
+            ([10 ** 308, 10 ** 308], 1e308),
+            ([10 ** 400, -(10 ** 400)], 0.0),
+        ]
+        for values, expected in cases:
+            with self.subTest(values=values):
+                result = jmespath.search('avg(@)', values)
+                self.assertEqual(result, expected)
+                if result is not None:
+                    self.assertIsInstance(result, float)
 
     def test_can_max_datetimes(self):
         # This is python specific behavior, but JMESPath does not specify what
