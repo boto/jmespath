@@ -1,7 +1,7 @@
 Next Release (TBD)
 ==================
 
-* No changes yet.
+* Reject slice expressions with multiple numbers in the same component.
 
 
 1.1.0

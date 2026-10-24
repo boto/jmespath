@@ -237,7 +237,7 @@ class Parser(object):
                     self._raise_parse_error_for_token(
                         self._lookahead_token(0), 'syntax error')
                 self._advance()
-            elif current_token == 'number':
+            elif current_token == 'number' and parts[index] is None:
                 parts[index] = self._lookahead_token(0)['value']
                 self._advance()
             else:
