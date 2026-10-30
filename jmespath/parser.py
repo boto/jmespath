@@ -507,11 +507,14 @@ class Parser(object):
 
 @with_repr_method
 class ParsedResult(object):
-    def __init__(self, expression, parsed):
+    def __init__(self, expression, parsed, options=None):
         self.expression = expression
         self.parsed = parsed
+        self._options = options
 
     def search(self, value, options=None):
+        if options is None:
+            options = self._options
         interpreter = visitor.TreeInterpreter(options)
         result = interpreter.visit(self.parsed, value)
         return result

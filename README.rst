@@ -101,6 +101,19 @@ of your dict keys.  To do this you can use either of these options:
     ...               jmespath.Options(dict_cls=collections.OrderedDict))
 
 
+Options can also be supplied when compiling an expression, so repeated
+searches use the same defaults:
+
+.. code:: python
+
+    >>> parsed = jmespath.compile('{a: a, b: b}',
+    ...     options=jmespath.Options(dict_cls=collections.OrderedDict))
+    >>> parsed.search(mydata)
+
+Passing ``options`` to ``parsed.search()`` overrides the compiled defaults
+for that search only. Other compiled expressions and ``jmespath.search()``
+are unaffected.
+
 Custom Functions
 ~~~~~~~~~~~~~~~~
 

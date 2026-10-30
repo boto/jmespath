@@ -7,6 +7,51 @@ import jmespath.functions
 
 
 class TestSearchOptions(unittest.TestCase):
+    def test_compile_uses_default_options(self):
+        expression = jmespath.compile(
+            '{a: a, b: b}',
+            options=jmespath.Options(dict_cls=OrderedDict))
+        result = expression.search({'a': 1, 'b': 2})
+        self.assertIsInstance(result, OrderedDict)
+        self.assertEqual(list(result.items()), [('a', 1), ('b', 2)])
+
+    def test_search_options_override_compiled_defaults(self):
+        expression = jmespath.compile(
+            '{a: a}', options=jmespath.Options(dict_cls=OrderedDict))
+        result = expression.search(
+            {'a': 1}, options=jmespath.Options(dict_cls=dict))
+        self.assertIs(type(result), dict)
+        self.assertIsInstance(expression.search({'a': 2}), OrderedDict)
+
+    def test_compiled_defaults_do_not_leak_between_expressions(self):
+        class OtherDict(dict):
+            pass
+
+        plain = jmespath.compile('{a: a}')
+        ordered = jmespath.compile(
+            '{a: a}', options=jmespath.Options(dict_cls=OrderedDict))
+        other = jmespath.compile(
+            '{a: a}', options=jmespath.Options(dict_cls=OtherDict))
+        self.assertIsInstance(ordered.search({'a': 1}), OrderedDict)
+        self.assertIsInstance(other.search({'a': 1}), OtherDict)
+        self.assertIs(type(plain.search({'a': 1})), dict)
+        self.assertIs(type(jmespath.compile('{a: a}').search({'a': 1})), dict)
+        self.assertIs(type(jmespath.search('{a: a}', {'a': 1})), dict)
+
+    def test_compile_with_custom_functions(self):
+        class CustomFunctions(jmespath.functions.Functions):
+            @jmespath.functions.signature({'types': ['number']})
+            def _func_double(self, number):
+                return number * 2
+
+        expression = jmespath.compile(
+            'double(value)',
+            options=jmespath.Options(custom_functions=CustomFunctions()))
+        self.assertEqual(expression.search({'value': 3}), 6)
+        self.assertEqual(expression.search({'value': 5}), 10)
+        with self.assertRaises(jmespath.exceptions.UnknownFunctionError):
+            jmespath.search('double(value)', {'value': 3})
+
     def test_can_provide_dict_cls(self):
         result = jmespath.search(
             '{a: a, b: b, c: c}.*',
