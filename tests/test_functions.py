@@ -55,3 +55,24 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(
             str(exception),
             'Expected at least 1 argument for function not_null(), received 0')
+
+    def test_floor_ceil_reject_non_finite(self):
+        # json.loads accepts Infinity/NaN by default, so data loaded the
+        # usual way can reach floor()/ceil().  math.floor/ceil raise
+        # uncatchable OverflowError/ValueError on non-finite floats; we
+        # surface them as JMESPathTypeError so callers catching
+        # JMESPathError can handle them like any other bad argument.
+        for expression, document in [
+            ('floor(@)', 'Infinity'),
+            ('ceil(@)', 'Infinity'),
+            ('floor(@)', 'NaN'),
+            ('ceil(@)', 'NaN'),
+        ]:
+            with self.assertRaises(exceptions.JMESPathTypeError):
+                jmespath.search(expression, json.loads(document))
+
+    def test_floor_ceil_still_work_for_finite(self):
+        self.assertEqual(jmespath.search('floor(@)', 3.7), 3)
+        self.assertEqual(jmespath.search('ceil(@)', 3.2), 4)
+        self.assertEqual(jmespath.search('floor(`3.7`)', {}), 3)
+        self.assertEqual(jmespath.search('ceil(`3.2`)', {}), 4)
