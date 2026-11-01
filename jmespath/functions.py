@@ -64,6 +64,12 @@ class FunctionRegistry(type):
         cls.FUNCTION_TABLE = function_table
 
 
+def _is_finite(value):
+    # math.floor() and math.ceil() raise OverflowError on infinities and
+    # ValueError on nan, which escaped search() as builtin exceptions.
+    # Both are ordinary floats here, so they are passed through untouched.
+    return not (isinstance(value, float) and not math.isfinite(value))
+
 class Functions(metaclass=FunctionRegistry):
 
     FUNCTION_TABLE = {
@@ -235,10 +241,14 @@ class Functions(metaclass=FunctionRegistry):
 
     @signature({"types": ['number']})
     def _func_ceil(self, arg):
+        if not _is_finite(arg):
+            return arg
         return math.ceil(arg)
 
     @signature({"types": ['number']})
     def _func_floor(self, arg):
+        if not _is_finite(arg):
+            return arg
         return math.floor(arg)
 
     @signature({"types": ['string']}, {"types": ['array-string']})

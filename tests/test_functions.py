@@ -2,6 +2,7 @@
 from tests import unittest
 from datetime import datetime, timedelta
 import json
+import math
 
 import jmespath
 from jmespath import exceptions
@@ -55,3 +56,14 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(
             str(exception),
             'Expected at least 1 argument for function not_null(), received 0')
+
+    def test_floor_and_ceil_pass_non_finite_numbers_through(self):
+        # math.floor()/math.ceil() raise OverflowError on infinities and
+        # ValueError on nan, and both used to escape search() as builtin
+        # exceptions instead of returning the value.
+        self.assertEqual(
+            jmespath.search('floor(`1e400`)', {}), float('inf'))
+        self.assertEqual(
+            jmespath.search('ceil(`-1e400`)', {}), float('-inf'))
+        self.assertTrue(math.isnan(
+            jmespath.search('ceil(n)', {'n': float('nan')})))
