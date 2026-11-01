@@ -238,6 +238,10 @@ class Parser(object):
                         self._lookahead_token(0), 'syntax error')
                 self._advance()
             elif current_token == 'number':
+                if index == 2 and self._lookahead_token(0)['value'] == 0:
+                    self._raise_parse_error_for_token(
+                        self._lookahead_token(0),
+                        'Invalid slice, step cannot be 0')
                 parts[index] = self._lookahead_token(0)['value']
                 self._advance()
             else:

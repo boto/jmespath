@@ -19,6 +19,15 @@ class TestParser(unittest.TestCase):
         parsed = self.parser.parse(expression)
         self.assertEqual(parsed.parsed, expected_ast)
 
+    def test_slice_step_zero_raises_a_parse_error(self):
+        # A step of 0 is invalid, and the parser knows it: the step is a
+        # literal. Feeding it to slice() instead leaked a bare ValueError
+        # ("slice step cannot be zero") out of search().
+        for expression in ['foo[::0]', 'foo[1:2:0]', '[::0]']:
+            with self.assertRaises(exceptions.ParseError) as ctx:
+                self.parser.parse(expression)
+            self.assertIn('step cannot be 0', str(ctx.exception))
+
     def test_parse_empty_string_raises_exception(self):
         with self.assertRaises(exceptions.EmptyExpressionError):
             self.parser.parse('')
