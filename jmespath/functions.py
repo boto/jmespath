@@ -235,10 +235,16 @@ class Functions(metaclass=FunctionRegistry):
 
     @signature({"types": ['number']})
     def _func_ceil(self, arg):
+        if not math.isfinite(arg):
+            raise exceptions.JMESPathTypeError(
+                'ceil', arg, 'non-finite number', ['number'])
         return math.ceil(arg)
 
     @signature({"types": ['number']})
     def _func_floor(self, arg):
+        if not math.isfinite(arg):
+            raise exceptions.JMESPathTypeError(
+                'floor', arg, 'non-finite number', ['number'])
         return math.floor(arg)
 
     @signature({"types": ['string']}, {"types": ['array-string']})
