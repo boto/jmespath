@@ -316,14 +316,19 @@ class Functions(metaclass=FunctionRegistry):
         # either a string of a number.  We then create a key function
         # that validates that type, which requires that remaining array
         # elements resolve to the same type as the first element.
+        # The type check is done on the resolved key, not on the array
+        # element, because that's the value the signature constrains.
+        keyfunc = self._create_key_func(expref,
+                                        ['number', 'string'],
+                                        'sort_by')
+        required_key = keyfunc(array[0])
         required_type = self._convert_to_jmespath_type(
-            type(expref.visit(expref.expression, array[0])).__name__)
+            type(required_key).__name__)
         if required_type not in ['number', 'string']:
             raise exceptions.JMESPathTypeError(
-                'sort_by', array[0], required_type, ['string', 'number'])
-        keyfunc = self._create_key_func(expref,
-                                        [required_type],
-                                        'sort_by')
+                'sort_by', required_key, required_type,
+                ['string', 'number'])
+        keyfunc = self._create_key_func(expref, [required_type], 'sort_by')
         return list(sorted(array, key=keyfunc))
 
     @signature({'types': ['array']}, {'types': ['expref']})

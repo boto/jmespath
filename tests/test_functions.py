@@ -55,3 +55,13 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(
             str(exception),
             'Expected at least 1 argument for function not_null(), received 0')
+
+    def test_sort_by_reports_the_resolved_key_in_type_errors(self):
+        # The spec defines sort_by as sort_by(array, expression->number|
+        # expression->string), so the value that has the invalid type is the
+        # value the expression resolved to, not the array element it was
+        # resolved against.  min_by/max_by already report the resolved key.
+        with self.assertRaises(exceptions.JMESPathTypeError) as e:
+            jmespath.search('sort_by(@, &k)', [{'k': [1, 2]}])
+        self.assertIn('invalid type for value: [1, 2]', str(e.exception))
+        self.assertIn('received: "array"', str(e.exception))
