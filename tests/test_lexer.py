@@ -143,6 +143,55 @@ class TestRegexLexer(unittest.TestCase):
              ]
         )
 
+    def test_position_of_quoted_identifier_not_at_start(self):
+        # Regression test: 'end' used to be set to the token's length
+        # instead of start + length, so it was wrong (and less than
+        # 'start') whenever the token wasn't at the start of the
+        # expression.
+        tokens = list(self.lexer.tokenize('foo."q"'))
+        self.assertEqual(
+            tokens,
+            [{'type': 'unquoted_identifier', 'value': 'foo',
+              'start': 0, 'end': 3},
+             {'type': 'dot', 'value': '.',
+              'start': 3, 'end': 4},
+             {'type': 'quoted_identifier', 'value': 'q',
+              'start': 4, 'end': 7},
+             {'type': 'eof', 'value': '',
+              'start': 7, 'end': 7},
+             ]
+        )
+
+    def test_position_of_raw_string_literal_not_at_start(self):
+        tokens = list(self.lexer.tokenize("foo.'bar'"))
+        self.assertEqual(
+            tokens,
+            [{'type': 'unquoted_identifier', 'value': 'foo',
+              'start': 0, 'end': 3},
+             {'type': 'dot', 'value': '.',
+              'start': 3, 'end': 4},
+             {'type': 'literal', 'value': 'bar',
+              'start': 4, 'end': 9},
+             {'type': 'eof', 'value': '',
+              'start': 9, 'end': 9},
+             ]
+        )
+
+    def test_position_of_backtick_literal_not_at_start(self):
+        tokens = list(self.lexer.tokenize('foo.`"bar"`'))
+        self.assertEqual(
+            tokens,
+            [{'type': 'unquoted_identifier', 'value': 'foo',
+              'start': 0, 'end': 3},
+             {'type': 'dot', 'value': '.',
+              'start': 3, 'end': 4},
+             {'type': 'literal', 'value': 'bar',
+              'start': 4, 'end': 11},
+             {'type': 'eof', 'value': '',
+              'start': 11, 'end': 11},
+             ]
+        )
+
     def test_unknown_character(self):
         with self.assertRaises(LexerError) as e:
             tokens = list(self.lexer.tokenize('foo[0^]'))
