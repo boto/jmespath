@@ -55,3 +55,25 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(
             str(exception),
             'Expected at least 1 argument for function not_null(), received 0')
+
+    def test_ceil_raises_jmespath_error_on_infinity(self):
+        # Regression test: ceil() used to pass its argument straight to
+        # math.ceil(), which raises the builtin OverflowError on infinity
+        # instead of a JMESPathError subclass.
+        with self.assertRaises(exceptions.JMESPathTypeError):
+            jmespath.search('ceil(@)', float('inf'))
+
+    def test_ceil_raises_jmespath_error_on_nan(self):
+        with self.assertRaises(exceptions.JMESPathTypeError):
+            jmespath.search('ceil(@)', float('nan'))
+
+    def test_floor_raises_jmespath_error_on_infinity(self):
+        # Regression test: floor() used to pass its argument straight to
+        # math.floor(), which raises the builtin OverflowError on infinity
+        # instead of a JMESPathError subclass.
+        with self.assertRaises(exceptions.JMESPathTypeError):
+            jmespath.search('floor(@)', float('inf'))
+
+    def test_floor_raises_jmespath_error_on_nan(self):
+        with self.assertRaises(exceptions.JMESPathTypeError):
+            jmespath.search('floor(@)', float('nan'))
