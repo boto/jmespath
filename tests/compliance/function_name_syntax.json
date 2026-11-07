@@ -1,0 +1,72 @@
+[
+  {
+    "given": {
+      "foo": 1,
+      "bar": 2,
+      "items": [
+        {
+          "foo": 2
+        },
+        {
+          "foo": 1
+        }
+      ],
+      "length": "value"
+    },
+    "cases": [
+      {
+        "expression": "(length)(@)",
+        "error": "syntax"
+      },
+      {
+        "expression": "(\"length\")(@)",
+        "error": "syntax"
+      },
+      {
+        "expression": "((length))(@)",
+        "error": "syntax"
+      },
+      {
+        "expression": "((\"length\"))(@)",
+        "error": "syntax"
+      },
+      {
+        "expression": "to_array((length)(@))",
+        "error": "syntax"
+      },
+      {
+        "expression": "[(\"length\")(@)]",
+        "error": "syntax"
+      },
+      {
+        "expression": "\"length\"(@)",
+        "error": "syntax"
+      },
+      {
+        "expression": "length(@)",
+        "result": 4
+      },
+      {
+        "expression": "(length(@))",
+        "result": 4
+      },
+      {
+        "expression": "to_array(length(@))",
+        "result": [
+          4
+        ]
+      },
+      {
+        "expression": "items[].length(@)",
+        "result": [
+          1,
+          1
+        ]
+      },
+      {
+        "expression": "\"length\"",
+        "result": "value"
+      }
+    ]
+  }
+]
