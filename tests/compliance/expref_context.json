@@ -1,0 +1,78 @@
+[
+  {
+    "given": {
+      "foo": true,
+      "items": [
+        {
+          "foo": 2
+        },
+        {
+          "foo": 1
+        }
+      ]
+    },
+    "cases": [
+      {
+        "expression": "&foo",
+        "error": "syntax"
+      },
+      {
+        "expression": "[&foo]",
+        "error": "syntax"
+      },
+      {
+        "expression": "{a: &foo}",
+        "error": "syntax"
+      },
+      {
+        "expression": "foo || &bar",
+        "error": "syntax"
+      },
+      {
+        "expression": "foo[?&bar]",
+        "error": "syntax"
+      },
+      {
+        "expression": "length([&foo])",
+        "error": "syntax"
+      },
+      {
+        "expression": "map((&foo), items)",
+        "error": "syntax"
+      },
+      {
+        "expression": "map(&&foo, items)",
+        "error": "syntax"
+      },
+      {
+        "expression": "map(&foo, items)",
+        "result": [
+          2,
+          1
+        ]
+      },
+      {
+        "expression": "sort_by(items, &foo)[].foo",
+        "result": [
+          1,
+          2
+        ]
+      },
+      {
+        "expression": "map(&(foo || `0`), items)",
+        "result": [
+          2,
+          1
+        ]
+      },
+      {
+        "expression": "map(&map(&foo, @), `[ [{\"foo\": 3}] ]`)",
+        "result": [
+          [
+            3
+          ]
+        ]
+      }
+    ]
+  }
+]

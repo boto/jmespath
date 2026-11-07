@@ -250,10 +250,6 @@ class Parser(object):
     def _token_nud_current(self, token):
         return ast.current_node()
 
-    def _token_nud_expref(self, token):
-        expression = self._expression(self.BINDING_POWER['expref'])
-        return ast.expref(expression)
-
     def _token_led_dot(self, left):
         if not self._current_token() == 'star':
             right = self._parse_dot_rhs(self.BINDING_POWER['dot'])
@@ -293,7 +289,11 @@ class Parser(object):
         name = left['value']
         args = []
         while not self._current_token() == 'rparen':
-            expression = self._expression()
+            if self._current_token() == 'expref':
+                self._advance()
+                expression = ast.expref(self._expression())
+            else:
+                expression = self._expression()
             if self._current_token() == 'comma':
                 self._match('comma')
             args.append(expression)
