@@ -397,6 +397,8 @@ class Parser(object):
             elif self._current_token() == 'rbrace':
                 self._match('rbrace')
                 break
+            else:
+                self._match('comma')
         return ast.multi_select_dict(nodes=pairs)
 
     def _parse_projection_rhs(self, binding_power):

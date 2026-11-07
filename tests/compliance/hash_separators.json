@@ -1,0 +1,67 @@
+[
+  {
+    "given": {
+      "foo": 1,
+      "bar": 2,
+      "items": []
+    },
+    "cases": [
+      {
+        "expression": "{a: foo b: bar}",
+        "error": "syntax"
+      },
+      {
+        "expression": "{a: foo \"b\": bar}",
+        "error": "syntax"
+      },
+      {
+        "expression": "{a: foo, b: bar c: foo}",
+        "error": "syntax"
+      },
+      {
+        "expression": "{a: {b: foo c: bar}}",
+        "error": "syntax"
+      },
+      {
+        "expression": "items[].{a: foo b: bar}",
+        "error": "syntax"
+      },
+      {
+        "expression": "{a: `1`b: `2`}",
+        "error": "syntax"
+      },
+      {
+        "expression": "{a: foo, b: bar}",
+        "result": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      {
+        "expression": "{a: foo}",
+        "result": {
+          "a": 1
+        }
+      },
+      {
+        "expression": "{a: {b: foo, c: bar}}",
+        "result": {
+          "a": {
+            "b": 1,
+            "c": 2
+          }
+        }
+      },
+      {
+        "expression": "{a: foo, \"b\": [foo, bar]}",
+        "result": {
+          "a": 1,
+          "b": [
+            1,
+            2
+          ]
+        }
+      }
+    ]
+  }
+]
