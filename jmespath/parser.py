@@ -282,7 +282,8 @@ class Parser(object):
         return ast.and_expression(left, right)
 
     def _token_led_lparen(self, left):
-        if left['type'] != 'field':
+        if (left['type'] != 'field' or
+                self._lookahead(-2) != 'unquoted_identifier'):
             #  0 - first func arg or closing paren.
             # -1 - '(' token
             # -2 - invalid function "name".
